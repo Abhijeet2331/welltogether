@@ -5,9 +5,9 @@ import { Container, Typography, Grid, Paper, Button } from "@mui/material";
 
 const GamesPage = () => {
   const games = [
-    { name: "Skribbl.io", image: "/games/skribbl.jpg", link: "https://skribbl.io/" },
-    { name: "Chess.com", image: "/games/chess.jpg", link: "https://www.chess.com/play" },
-    { name: "Tic-Tac-Toe", image: "/games/tic-tac-toe.jpg", link: "https://playtictactoe.org/" },
+    { name: "Skribbl.io", image: "/skribbl.jpeg", link: "https://skribbl.io/" },
+    { name: "Chess.com", image: "/chess.jpeg", link: "https://www.chess.com/play" },
+    { name: "Tic-Tac-Toe", image: "/tic-tac-toe.jpeg", link: "https://playtictactoe.org/" },
   ];
 
   return (
