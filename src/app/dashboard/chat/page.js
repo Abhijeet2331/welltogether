@@ -37,6 +37,17 @@ export default function ChatCallPage() {
     { id: 2, name: "Bob", active: true, isSpeaking: false }
   ]);
 
+  // Realtime user state (the logged-in user's info)
+  const [user, setUser] = useState(null);
+
+  // Retrieve the logged-in user's info on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   // Subscribe to messages when the group changes.
   useEffect(() => {
     const unsubscribe = subscribeToChatMessages(selectedGroup, setMessages);
@@ -45,13 +56,17 @@ export default function ChatCallPage() {
 
   const handleSendMessage = async () => {
     if (!messageInput.trim()) return;
+
+    // Use the logged-in user's name; if not available, default to "Anonymous"
+    const senderName = user?.name || "Anonymous";
+
     const messageData = {
-      sender: "You", // In a real app, use the logged-in user's name/ID
+      sender: senderName,
       text: messageInput
     };
 
     try {
-      // Send the message to the selected group
+      // Send the message to Firestore under the selected group.
       await sendChatMessage(selectedGroup, messageData);
       setMessageInput("");
     } catch (error) {
@@ -87,7 +102,10 @@ export default function ChatCallPage() {
           {messages.map((msg) => (
             <Paper key={msg.id} sx={{ p: 1, mb: 1 }}>
               <Typography variant="caption" color="textSecondary">
-                {msg.sender} • {new Date(msg.timestamp.seconds * 1000).toLocaleTimeString()}
+                {msg.sender} •{" "}
+                {msg.timestamp && msg.timestamp.seconds
+                  ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString()
+                  : ""}
               </Typography>
               <Typography variant="body1">{msg.text}</Typography>
             </Paper>

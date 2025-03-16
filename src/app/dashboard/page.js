@@ -13,12 +13,21 @@ import MovieIcon from "@mui/icons-material/Movie";
 export default function SecondPage() {
   // Define your feature cards
   const features = [
+<<<<<<< HEAD
     { label: "Chat & Call", icon: <ChatIcon fontSize="large" /> },
     { label: "Success Stories", icon: <EmojiEventsIcon fontSize="large" /> },
     { label: "Play with your Friends", icon: <SportsEsportsIcon fontSize="large" /> },
     { label: "Journal Entry", icon: <CreateIcon fontSize="large" /> },
     { label: "Happy Bot", icon: <WbSunnyIcon fontSize="large" /> },
     { label: "Watch Party", icon: <MovieIcon fontSize="large" /> },
+=======
+    { name: "Call & Chat", icon: <ChatIcon />, route: "/dashboard/chat" },
+    { name: "Multiplayer Games", icon: <SportsEsportsIcon />, route: "/dashboard/games" },
+    { name: "Happy ChatGPT", icon: <AutoAwesomeIcon />, route: "/dashboard/happy-gpt" },
+    { name: "Daily Journal", icon: <CreateIcon />, route: "/dashboard/journal" },
+    { name: "Watch Party", icon: <MovieIcon />, route: "/dashboard/watch-party" },
+    { name: "Sucsess Stories", icon: <MovieIcon />, route: "/dashboard/stories" },
+>>>>>>> 5352ce4c9a3361927e269741c653f4475213220c
   ];
 
   return (
