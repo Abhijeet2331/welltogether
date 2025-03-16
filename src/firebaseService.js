@@ -9,7 +9,10 @@ import {
   orderBy,
   onSnapshot,
   deleteDoc,
-  updateDoc
+  updateDoc,
+  getDoc,
+  setDoc,
+  arrayUnion
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -22,7 +25,7 @@ export async function getOrCreateUser(name) {
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
-    // We also store voiceActive = false by default
+    // Create user with voiceActive = false by default
     const userData = { name, createdAt: new Date(), voiceActive: false };
     const docRef = await addDoc(usersRef, userData);
     return { id: docRef.id, ...userData };
@@ -34,19 +37,17 @@ export async function getOrCreateUser(name) {
 
 /**
  * Sets a user's voiceActive presence in Firestore.
- * @param {string} userId - The Firestore doc ID of the user.
- * @param {boolean} active - Whether the user is active in voice or not.
  */
 export async function setUserVoiceStatus(userId, active) {
+  if (!userId) {
+    throw new Error("setUserVoiceStatus: userId is undefined");
+  }
   const userRef = doc(db, "users", userId);
-  // updateDoc is a partial update
   await updateDoc(userRef, { voiceActive: active });
 }
 
 /**
- * Subscribes to all users who have voiceActive == true in real time.
- * @param {function} callback - Called with an array of user objects
- * @returns {function} unsubscribe function
+ * Subscribes to all users who have voiceActive == true.
  */
 export function subscribeToActiveUsers(callback) {
   const usersRef = collection(db, "users");
@@ -93,7 +94,7 @@ export async function deleteJournalEntry(userId, journalId) {
 }
 
 /**
- * Sends a chat message to the specified group subcollection: /chatGroups/{group}/messages
+ * Sends a chat message to the specified group.
  */
 export async function sendChatMessage(group, messageData) {
   const messagesRef = collection(db, "chatGroups", group, "messages");
@@ -105,9 +106,6 @@ export async function sendChatMessage(group, messageData) {
 
 /**
  * Subscribes to chat messages for a specific group in real time.
- * @param {string} group - The chat group to subscribe to
- * @param {function} callback - Function to receive an array of message docs
- * @returns {function} unsubscribe function
  */
 export function subscribeToChatMessages(group, callback) {
   const messagesRef = collection(db, "chatGroups", group, "messages");
@@ -119,4 +117,30 @@ export function subscribeToChatMessages(group, callback) {
     }));
     callback(messages);
   });
+}
+
+/**
+ * Voice call signaling functions (placeholder):
+ * We use a fixed call document ("activeCall") for a two-peer call.
+ */
+export async function createCallDoc(offer) {
+  const callDocRef = doc(db, "calls", "activeCall");
+  await setDoc(callDocRef, { offer, callerCandidates: [] });
+  return callDocRef;
+}
+
+export async function answerCall(callDocRef, answer) {
+  await updateDoc(callDocRef, { answer });
+}
+
+export async function addIceCandidate(callDocRef, candidate, type) {
+  if (type === "caller") {
+    await updateDoc(callDocRef, {
+      callerCandidates: arrayUnion(candidate.toJSON())
+    });
+  } else {
+    await updateDoc(callDocRef, {
+      calleeCandidates: arrayUnion(candidate.toJSON())
+    });
+  }
 }

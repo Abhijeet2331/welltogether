@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   CssBaseline,
@@ -33,12 +33,16 @@ import {
   subscribeToChatMessages,
   sendChatMessage,
   subscribeToActiveUsers,
-  setUserVoiceStatus
+  setUserVoiceStatus,
+  getOrCreateUser
 } from "@/firebaseService";
+import { useRouter } from "next/navigation";
 
+// Drawer widths
 const drawerWidth = 250;
 const voiceDrawerWidth = 250;
 
+// Styled components for chat area
 const ChatContainer = styled("div")(({ theme }) => ({
   flex: 1,
   display: "flex",
@@ -55,6 +59,7 @@ const MessageList = styled("div")(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
+// Filter out custom prop "isUser" so it isn't passed to DOM
 const MessageBubble = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "isUser"
 })(({ theme, isUser }) => ({
@@ -65,7 +70,104 @@ const MessageBubble = styled(Paper, {
   backgroundColor: isUser ? "#e0f7fa" : "#f3e5f5",
 }));
 
+// ------------------ VoiceCall Component ------------------
+function VoiceCall({ user }) {
+  // If no valid user, show disabled button
+  if (!user || !user.id) {
+    return (
+      <Button variant="contained" disabled sx={{ width: "100%" }}>
+        Join Voice (Login Required)
+      </Button>
+    );
+  }
+
+  const [inCall, setInCall] = useState(false);
+  const [peerConnection, setPeerConnection] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
+  const audioRef = useRef(null);
+  const callDocRef = useRef(null);
+
+  // STUN configuration for ICE candidates
+  const configuration = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+
+  const joinCall = async () => {
+    try {
+      // Mark user as active in voice channel
+      await setUserVoiceStatus(user.id, true);
+      setInCall(true);
+
+      // Get local audio stream
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setLocalStream(stream);
+      const pc = new RTCPeerConnection(configuration);
+      setPeerConnection(pc);
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+      // Create remote stream and attach it to audio element
+      const remoteStream = new MediaStream();
+      if (audioRef.current) {
+        audioRef.current.srcObject = remoteStream;
+      }
+      pc.ontrack = (event) => {
+        event.streams[0].getTracks().forEach((track) => remoteStream.addTrack(track));
+      };
+
+      // --- Placeholder Signaling Logic ---
+      // Use a fixed call document "activeCall" in Firestore.
+      // In a full implementation, exchange SDP offers/answers and ICE candidates via Firestore.
+      console.log("VoiceCall: RTCPeerConnection created. Signaling exchange is not fully implemented.");
+    } catch (err) {
+      console.error("Error joining voice call:", err);
+    }
+  };
+
+  const leaveCall = async () => {
+    try {
+      await setUserVoiceStatus(user.id, false);
+      setInCall(false);
+      if (peerConnection) {
+        peerConnection.close();
+        setPeerConnection(null);
+      }
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop());
+        setLocalStream(null);
+      }
+    } catch (err) {
+      console.error("Error leaving voice call:", err);
+    }
+  };
+
+  return (
+    <Box sx={{ mt: 2 }}>
+      {!inCall ? (
+        <Button
+          variant="contained"
+          startIcon={<MicIcon />}
+          onClick={joinCall}
+          sx={{ width: "100%", backgroundColor: "#ab47bc" }}
+        >
+          Join Voice
+        </Button>
+      ) : (
+        <Button
+          variant="contained"
+          startIcon={<CallEndIcon />}
+          color="error"
+          onClick={leaveCall}
+          sx={{ width: "100%" }}
+        >
+          Leave Voice
+        </Button>
+      )}
+      <audio ref={audioRef} autoPlay playsInline style={{ display: "none" }} />
+    </Box>
+  );
+}
+// ---------------- End VoiceCall Component ----------------
+
 export default function ChatCallPage() {
+  const router = useRouter();
   const [activeGroup, setActiveGroup] = useState("General Chat");
   const groups = [
     { label: "General Chat", icon: <Groups /> },
@@ -74,29 +176,38 @@ export default function ChatCallPage() {
     { label: "Talk to Psychologist", icon: <Psychology /> },
   ];
 
-  // Chat messages
+  // Chat messages and input
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
 
-  // Active voice users from Firestore
+  // Active voice users (for display)
   const [voiceUsers, setVoiceUsers] = useState([]);
-  const [inVoiceChannel, setInVoiceChannel] = useState(false);
-
+  
   // Current user from localStorage
   const [user, setUser] = useState(null);
 
-  // Load user from localStorage on mount
+  // Load user from localStorage on mount; if user exists but no id, create one.
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
-      setUser(parsed);
+      if (parsed.id) {
+        setUser(parsed);
+      } else if (parsed.name) {
+        // Create a new user with full info
+        getOrCreateUser(parsed.name).then((newUser) => {
+          localStorage.setItem("user", JSON.stringify(newUser));
+          setUser(newUser);
+        }).catch(err => console.error("Error creating user:", err));
+      } else {
+        console.warn("User data invalid in localStorage.");
+      }
     } else {
-      console.warn("No user found in localStorage. Voice presence won't work properly.");
+      console.warn("No user found in localStorage.");
     }
   }, []);
 
-  // Subscribe to messages for activeGroup using subscribeToChatMessages
+  // Subscribe to chat messages for activeGroup using subscribeToChatMessages
   useEffect(() => {
     const unsubscribe = subscribeToChatMessages(activeGroup, (msgs) => {
       setMessages(
@@ -119,7 +230,6 @@ export default function ChatCallPage() {
     return () => unsubscribe && unsubscribe();
   }, []);
 
-  // Send a new chat message
   const handleSendMessage = async () => {
     if (!messageInput.trim()) return;
     const newMsg = {
@@ -131,31 +241,6 @@ export default function ChatCallPage() {
       await sendChatMessage(activeGroup, newMsg);
     } catch (err) {
       console.error("Failed to send chat message:", err);
-    }
-  };
-
-  // Join voice channel (set presence)
-  const handleJoinVoice = async () => {
-    if (!user?.id) {
-      console.warn("No user. Cannot join voice channel.");
-      return;
-    }
-    try {
-      await setUserVoiceStatus(user.id, true);
-      setInVoiceChannel(true);
-    } catch (err) {
-      console.error("Failed to join voice channel:", err);
-    }
-  };
-
-  // Leave voice channel (remove presence)
-  const handleLeaveVoice = async () => {
-    if (!user?.id) return;
-    try {
-      await setUserVoiceStatus(user.id, false);
-      setInVoiceChannel(false);
-    } catch (err) {
-      console.error("Failed to leave voice channel:", err);
     }
   };
 
@@ -182,7 +267,6 @@ export default function ChatCallPage() {
             Chat Groups
           </Typography>
           <Divider sx={{ my: 1 }} />
-          {/* List of Groups */}
           {groups.map((g, index) => (
             <ListItemButton
               key={index}
@@ -213,19 +297,17 @@ export default function ChatCallPage() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
+        <ChatContainer>
+          <MessageList>
             {messages.map((m) => (
               <MessageBubble key={m.id} isUser={m.sender === (user?.name || "You")}>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {m.sender} •{" "}
-                  {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {m.sender} • {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </Typography>
                 <Typography variant="body1">{m.text}</Typography>
               </MessageBubble>
             ))}
-          </Box>
-          {/* Input box */}
+          </MessageList>
           <Box sx={{ display: "flex", p: 2, borderTop: "1px solid #ddd" }}>
             <TextField
               fullWidth
@@ -248,7 +330,7 @@ export default function ChatCallPage() {
               <SendIcon />
             </Button>
           </Box>
-        </Box>
+        </ChatContainer>
       </Box>
 
       {/* Right Drawer - Voice Channel */}
@@ -271,7 +353,6 @@ export default function ChatCallPage() {
             Voice Channel
           </Typography>
           <Divider sx={{ my: 1 }} />
-          {/* Display all active users */}
           {voiceUsers.length === 0 ? (
             <Typography variant="body2" textAlign="center">
               No users online.
@@ -308,27 +389,7 @@ export default function ChatCallPage() {
             ))
           )}
           <Divider sx={{ my: 1 }} />
-          {/* Join / Leave Voice */}
-          {!inVoiceChannel ? (
-            <Button
-              variant="contained"
-              startIcon={<MicIcon />}
-              sx={{ mt: 2, width: "100%", backgroundColor: "#ab47bc" }}
-              onClick={handleJoinVoice}
-            >
-              Join Voice
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              startIcon={<CallEndIcon />}
-              color="error"
-              sx={{ mt: 2, width: "100%" }}
-              onClick={handleLeaveVoice}
-            >
-              Leave Voice
-            </Button>
-          )}
+          <VoiceCall user={user} />
         </Box>
       </Drawer>
     </Box>
