@@ -8,9 +8,13 @@ import {
   doc,
   orderBy,
   onSnapshot,
+  deleteDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
 
+/**
+ * Creates or retrieves a user by name.
+ */
 export async function getOrCreateUser(name) {
   const usersRef = collection(db, "users");
   const q = query(usersRef, where("name", "==", name));
@@ -27,7 +31,7 @@ export async function getOrCreateUser(name) {
 }
 
 /**
- * Now accepts a title for the journal entry.
+ * Saves a journal entry (title + entry text) for the given userId.
  */
 export async function saveJournalEntry(userId, title, entry) {
   const userRef = doc(db, "users", userId);
@@ -49,6 +53,14 @@ export async function getAllJournals(userId) {
   }));
 }
 
+/**
+ * Deletes a specific journal entry by its doc ID (journalId).
+ */
+export async function deleteJournalEntry(userId, journalId) {
+  const userRef = doc(db, "users", userId);
+  const journalRef = doc(userRef, "journals", journalId);
+  await deleteDoc(journalRef);
+}
 
 /**
  * Sends a chat message to the specified group.
@@ -73,7 +85,10 @@ export function subscribeToChatMessages(group, callback) {
   const messagesRef = collection(db, "chatGroups", group, "messages");
   const q = query(messagesRef, orderBy("timestamp", "asc"));
   return onSnapshot(q, (snapshot) => {
-    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const messages = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
     callback(messages);
   });
 }
