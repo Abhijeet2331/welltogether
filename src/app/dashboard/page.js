@@ -1,18 +1,15 @@
 "use client";
-
-import React from "react";
-import { Box, IconButton, Typography, Grid, Paper } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import { Container, Typography, Grid, Button, Paper } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
-import CreateIcon from "@mui/icons-material/Create";
-import WbSunnyIcon from "@mui/icons-material/WbSunny";
-import MovieIcon from "@mui/icons-material/Movie";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CreateIcon from "@mui/icons-material/Create";
+import MovieIcon from "@mui/icons-material/Movie";
+import { useRouter } from "next/navigation";
 
-export default function SecondPage() {
-  // Define your feature cards
+export default function Dashboard() {
+  const router = useRouter();
+
   const features = [
     { name: "Call & Chat", icon: <ChatIcon />, route: "/dashboard/chat" },
     { name: "Multiplayer Games", icon: <SportsEsportsIcon />, route: "/dashboard/games" },
@@ -23,72 +20,32 @@ export default function SecondPage() {
   ];
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        height: "100vh",
-        margin: 0,
-        padding: 0,
-        position: "relative",
-        overflow: "hidden",
-        backgroundImage: 'url("/myBackground.png")', // Image from public folder
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Top bar with hamburger menu */}
-      <Box sx={{ display: "flex", alignItems: "center", p: 3 }}>
-        <IconButton sx={{ color: "black" }}>
-          <MenuIcon />
-        </IconButton>
-      </Box>
-
-      {/* Greeting text */}
-      <Box sx={{ ml: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-          Hello, Samir!
-        </Typography>
-        <Typography variant="subtitle1" sx={{ mt: 1 }}>
-          How can we make your day better?
-        </Typography>
-      </Box>
-
-      {/* Features Grid */}
-      <Box sx={{ mt: 4, ml: 4 }}>
-        <Grid container spacing={3} sx={{ maxWidth: 800 }}>
-          {features.map((feature, index) => (
-            <Grid item xs={6} md={4} key={index}>
-              <Paper
-                sx={{
-                  p: 2,
-                  textAlign: "center",
-                  borderRadius: 4,
-                  backgroundColor: "#F4FCFA",
-                  boxShadow: 3,
-                  height: 120,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  "&:hover": {
-                    backgroundColor: "#DBF2EC",
-                  },
-                }}
-                onClick={() => {
-                  // Route to relevant page or handle click action
-                }}
-              >
-                <Box sx={{ color: "#3B3B3B", mb: 1 }}>{feature.icon}</Box>
-                <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                  {feature.label}
-                </Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-    </Box>
+    <Container maxWidth="md" sx={{ mt: 5 }}>
+      <Typography variant="h4" fontWeight="bold" textAlign="center">
+        WellTogether Dashboard
+      </Typography>
+      <Grid container spacing={3} sx={{ mt: 4 }}>
+        {features.map((feature, index) => (
+          <Grid item xs={12} sm={6} key={index}>
+            <Paper
+              sx={{
+                p: 3,
+                textAlign: "center",
+                borderRadius: 2,
+                cursor: "pointer",
+                boxShadow: 3,
+                "&:hover": { bgcolor: "primary.light" },
+              }}
+              onClick={() => router.push(feature.route)}
+            >
+              {feature.icon}
+              <Typography variant="h6" sx={{ mt: 1 }}>
+                {feature.name}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 }
