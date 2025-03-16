@@ -1,35 +1,60 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import React, { useState, useEffect } from "react";
 import {
-  Container,
-  TextField,
-  Button,
+  Box,
   Typography,
+  IconButton,
   Paper,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Button,
+  TextField,
 } from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
+import HomeIcon from "@mui/icons-material/Home";
+import { useRouter } from "next/navigation";
 import {
   getOrCreateUser,
+  getAllJournals,
   saveJournalEntry,
-  getAllJournals
+  deleteJournalEntry,
 } from "@/firebaseService";
 
 export default function JournalPage() {
-  // New state for the journal title
-  const [title, setTitle] = useState("");
-  const [entry, setEntry] = useState("");
-  const [userName, setUserName] = useState("");
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [journals, setJournals] = useState([]);
-  const [selectedJournal, setSelectedJournal] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [title, setTitle] = useState("");
+  const [entry, setEntry] = useState("");
 
-  // When user info changes, load all journals for that user
+  // Load user from localStorage
   useEffect(() => {
-    async function fetchJournalsForUser() {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.id) {
+        setUser(parsedUser);
+      } else {
+        (async () => {
+          const newUser = await getOrCreateUser(parsedUser.name);
+          localStorage.setItem("user", JSON.stringify(newUser));
+          setUser(newUser);
+        })();
+      }
+    } else {
+      console.error("No user found in localStorage");
+    }
+  }, []);
+
+  // Fetch journals whenever user changes
+  useEffect(() => {
+    async function fetchJournals() {
       if (user && user.id) {
         try {
           const allJournals = await getAllJournals(user.id);
@@ -39,139 +64,198 @@ export default function JournalPage() {
         }
       }
     }
-    fetchJournalsForUser();
+    fetchJournals();
   }, [user]);
 
+  // Open/close dialog for new entry
+  const handleOpenDialog = () => {
+    setTitle("");
+    setEntry("");
+    setOpenDialog(true);
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  // Save new journal entry
   const handleSave = async () => {
-    if (!userName.trim() || !title.trim() || !entry.trim()) return;
-
+    if (!title.trim() || !entry.trim()) return;
     try {
-      // Create or load the user based on the provided name.
-      let currentUser = user;
-      if (!currentUser) {
-        currentUser = await getOrCreateUser(userName);
-        setUser(currentUser);
-      }
-
-      // Save the journal entry with its title.
-      await saveJournalEntry(currentUser.id, title, entry);
-      alert("Journal entry saved!");
-      setTitle("");
-      setEntry("");
-
-      // Reload journals after saving.
-      const updatedJournals = await getAllJournals(currentUser.id);
+      await saveJournalEntry(user.id, title, entry);
+      const updatedJournals = await getAllJournals(user.id);
       setJournals(updatedJournals);
+      handleCloseDialog();
     } catch (error) {
       console.error("Error saving journal entry:", error);
       alert("Failed to save journal entry. Check console for details.");
     }
   };
 
-  const handleOpenJournal = (journal) => {
-    setSelectedJournal(journal);
+  // Delete journal entry
+  const handleDelete = async (journalId) => {
+    try {
+      await deleteJournalEntry(user.id, journalId);
+      const updatedJournals = await getAllJournals(user.id);
+      setJournals(updatedJournals);
+    } catch (err) {
+      console.error("Failed to delete journal:", err);
+    }
   };
 
-  const handleCloseDialog = () => {
-    setSelectedJournal(null);
+  // Compute Month header from the first journal's date
+  const getMonthHeader = () => {
+    if (journals.length > 0 && journals[0].date) {
+      const d = new Date(journals[0].date.seconds * 1000);
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+    }
+    return "Your Journal";
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 5 }}>
-      <Typography variant="h4" fontWeight="bold" textAlign="center">
-        📖 Daily Journal
-      </Typography>
-      <Paper sx={{ p: 3, mt: 3, boxShadow: 3 }}>
-        {/* User Name Field */}
-        <TextField
-          fullWidth
-          label="Your Name"
-          variant="outlined"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        {/* New Journal Title Field */}
-        <TextField
-          fullWidth
-          label="Journal Title"
-          variant="outlined"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        {/* Journal Entry Field */}
-        <TextField
-          fullWidth
-          label="Write your thoughts..."
-          variant="outlined"
-          multiline
-          rows={6}
-          value={entry}
-          onChange={(e) => setEntry(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          endIcon={<SaveIcon />}
-          onClick={handleSave}
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "100vh",
+        backgroundImage: 'url("/myBackground.png")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        py: 4,
+      }}
+    >
+      {/* Top Bar with Home Button */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 2 }}>
+        <IconButton
+          onClick={() => router.push("/dashboard")}
+          sx={{
+            border: "1px solid #000",
+            borderRadius: 2,
+            color: "#000",
+            backgroundColor: "transparent",
+            "&:hover": { backgroundColor: "#F8D24A" },
+          }}
         >
-          Save Entry
-        </Button>
-      </Paper>
+          <HomeIcon />
+        </IconButton>
+      </Box>
 
-      {/* Display saved journals */}
-      {journals.length > 0 && (
-        <>
-          <Typography variant="h5" sx={{ mt: 4 }}>
-            All Journals
+      {/* Main Container */}
+      <Box sx={{ width: "100%", maxWidth: 800, mx: "auto", p: 2 }}>
+        {/* Journal Entry Heading */}
+        <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+          Journal Entry
+        </Typography>
+        {/* Month Header */}
+        <Typography variant="h5" sx={{ mb: 3, color: "gray" }}>
+          {getMonthHeader()}
+        </Typography>
+
+        {/* List of Journal Entries */}
+        {journals.length === 0 ? (
+          <Typography variant="body1" sx={{ fontStyle: "italic", mt: 2 }}>
+            No entries yet. Press the <AddCircleOutlineIcon sx={{ fontSize: 30, color: "#CDC1F3" }} /> icon to add a new entry!
           </Typography>
-          {journals.map((journal) => (
+        ) : (
+          journals.map((journal) => (
             <Paper
               key={journal.id}
               sx={{
-                mt: 2,
                 p: 2,
-                cursor: "pointer",
-                "&:hover": { backgroundColor: "action.hover" }
+                mb: 2,
+                display: "flex",
+                alignItems: "center",
+                border: "2px solid #000",
+                borderRadius: 2,
               }}
-              onClick={() => handleOpenJournal(journal)}
             >
-              <Typography variant="subtitle1">
-                {journal.title || "No Title"}
-              </Typography>
-            </Paper>
-          ))}
-        </>
-      )}
-
-      {/* Popup dialog for a selected journal */}
-      <Dialog open={!!selectedJournal} onClose={handleCloseDialog} fullWidth>
-        <DialogTitle>
-          {selectedJournal ? selectedJournal.title : ""}
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedJournal && (
-            <>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                {selectedJournal.entry}
-              </Typography>
-              {selectedJournal.date && (
-                <Typography variant="caption" color="text.secondary">
-                  {new Date(selectedJournal.date.seconds * 1000).toLocaleString()}
+              {/* Date Circle */}
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: "50%",
+                  border: "2px solid #000",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 2,
+                }}
+              >
+                <Typography variant="h6">
+                  {journal.date
+                    ? new Date(journal.date.seconds * 1000).getDate()
+                    : "?"}
                 </Typography>
-              )}
-            </>
-          )}
+              </Box>
+
+              {/* Journal Content */}
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  {journal.title || "Untitled"}
+                </Typography>
+                <Typography variant="body2" sx={{ color: "gray" }}>
+                  {journal.entry.slice(0, 40)}...
+                </Typography>
+              </Box>
+
+              {/* Delete Icon */}
+              <IconButton onClick={() => handleDelete(journal.id)}>
+                <DeleteIcon />
+              </IconButton>
+            </Paper>
+          ))
+        )}
+
+        {/* Plus Icon for New Entry */}
+        <Box sx={{ mt: 3, textAlign: "right" }}>
+          <IconButton
+            sx={{
+              border: "2px solid #000",
+              borderRadius: "50%",
+              color: "#CDC1F3",
+            }}
+            onClick={handleOpenDialog}
+          >
+            <AddCircleOutlineIcon sx={{ fontSize: 30 }} />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {/* Dialog for New Journal Entry */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
+        <DialogTitle>New Journal Entry</DialogTitle>
+        <DialogContent>
+          <TextField
+            variant="outlined"
+            label="Title"
+            fullWidth
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            variant="outlined"
+            label="Entry"
+            fullWidth
+            multiline
+            rows={8}
+            value={entry}
+            onChange={(e) => setEntry(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} variant="outlined">
-            Close
+          <Button variant="text" onClick={handleCloseDialog}>
+            Cancel
+          </Button>
+          <Button variant="contained" endIcon={<SaveIcon />} onClick={handleSave}>
+            Save
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 }
