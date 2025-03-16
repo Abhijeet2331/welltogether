@@ -83,6 +83,7 @@ export default function SecondPage() {
         <IconButton sx={{ color: "black" }}>
           <MenuIcon />
         </IconButton>
+        yo
       </Box> */}
 
       {/* Greeting text, larger & centered */}
