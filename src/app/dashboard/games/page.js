@@ -8,32 +8,32 @@ import HomeIcon from "@mui/icons-material/Home";
 const gameList = [
   {
     name: "Gartic Phone",
-    image: "/garticphone.jpg",
+    image: "/games_img/01.png",
     link: "https://garticphone.com",
   },
   {
     name: "Miniblox",
-    image: "/miniblox.jpg",
+    image: "/games_img/02.png",
     link: "https://www.crazygames.com/game/miniblox   ",
   },
   {
     name: "Skribbl.io",
-    image: "/skribbl.png ",
+    image: "/games_img/03.png",
     link: "https://skribbl.io/",
   },
   {
     name: "Codenames Online",
-    image: "/codenames.jpg",
+    image: "/games_img/04.png",
     link: "https://codenames.game/",
   },
   {
     name: "4 Colors",
-    image: "/4colors.avif",
+    image: "/games_img/05.png",
     link: "https://www.crazygames.com/game/uno-online",
   },
   {
     name: "Shell Shockers",
-    image: "/shellshockers.jpg",
+    image: "/games_img/06.png",
     link: "https://shellshock.io/",
   },
 ];
@@ -72,6 +72,7 @@ export default function GamesPage() {
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          overflow: "auto",
         }}
       >
         {/* Header row: Title on left, Home button on right */}
