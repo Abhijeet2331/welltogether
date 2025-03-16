@@ -21,12 +21,12 @@ export default function Home() {
       } else {
         clearInterval(interval);
       }
-    }, 90);
+    }, 70); // Adjust speed as needed
 
     return () => clearInterval(interval);
   }, []);
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!name.trim()) return;
     setLoading(true);
     try {
@@ -45,56 +45,29 @@ export default function Home() {
         position: "relative",
         width: "100%",
         height: "100vh",
+        margin: 0,
+        padding: 0,
         overflow: "hidden",
+        backgroundImage: 'url("/your-background.png")', // Your background image
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Background Video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          zIndex: 0,
-        }}
-      >
-        <source src="/your-video.mp4" type="video/mp4" />
-      </video>
-
-      {/* Overlay to improve text readability if needed */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.3)", // Adjust opacity as needed
-          zIndex: 1,
-        }}
-      />
-
-      {/* Content */}
+      {/* Main Content */}
       <div
         style={{
           position: "relative",
-          zIndex: 2,
-          height: "100%",
-          width: "100%",
+          zIndex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
-          padding: "12vh 5vw 0",
+          paddingTop: "15vh", // Move content down from the top
         }}
       >
-        {/* Typing Effect Text */}
+        {/* Typing Effect Heading */}
         <Typography
-          variant="h2"
+          variant="h1"
           fontWeight="bold"
           sx={{
             mb: 5,
@@ -104,61 +77,88 @@ export default function Home() {
             borderRight: "4px solid white",
             paddingRight: "10px",
             fontFamily: "'Nunito', sans-serif",
-            textShadow: "2px 2px 4px rgba(0,0,0,0.5)", // Text shadow for better readability
+            textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
           }}
         >
           {typedText}
         </Typography>
 
-        {/* Input Field */}
+        {/* Pink Input Box */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            background: "rgba(255, 214, 224, 0.85)",
-            padding: "12px",
+            background: "#FFD6E0",
+            padding: "16px",
             borderRadius: "40px",
             width: "100%",
-            maxWidth: "500px",
+            maxWidth: "600px",
             boxShadow: "0px 4px 15px rgba(0,0,0,0.2)",
+            marginBottom: "5vh",
           }}
         >
           <TextField
             fullWidth
             variant="standard"
-            placeholder="Enter a character name to start"
+            placeholder="Enter a character name to start your journey:"
             InputProps={{
               disableUnderline: true,
               style: {
                 color: "#5A1A1A",
                 fontWeight: "bold",
-                fontSize: "18px",
+                fontSize: "20px",
                 padding: "5px 15px",
               },
             }}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            sx={{ flexGrow: 1, background: "transparent" }}
+            sx={{ background: "transparent" }}
           />
 
           <Button
             onClick={handleContinue}
             disabled={loading}
             sx={{
-              minWidth: "50px",
-              height: "50px",
+              minWidth: "55px",
+              height: "55px",
               borderRadius: "50%",
               backgroundColor: "#000000",
               color: "white",
               ml: 2,
-              fontSize: "18px",
+              fontSize: "20px",
               "&:hover": {
                 backgroundColor: "#F8D24A",
+                color: "#000000",
               },
             }}
           >
-            ➝
+            ➜
           </Button>
+        </div>
+
+        {/* GIF below the box */}
+        <div
+          style={{
+            width: "80%",
+            maxWidth: "700px",
+            borderRadius: "20px",
+            overflow: "hidden",
+            // Removed boxShadow for a flatter look
+            opacity: 0.9,
+            filter: "brightness(0.95) saturate(0.95)",
+          }}
+        >
+          <img
+            src="/video.gif"
+            alt="Animated"
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+              objectFit: "cover",
+              objectPosition: "bottom", // Aligns image so the bottom is visible
+            }}
+          />
         </div>
       </div>
     </div>
