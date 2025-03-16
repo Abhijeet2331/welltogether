@@ -55,7 +55,6 @@ const MessageList = styled("div")(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
-// Use shouldForwardProp to filter out "isUser"
 const MessageBubble = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "isUser"
 })(({ theme, isUser }) => ({
@@ -79,7 +78,7 @@ export default function ChatCallPage() {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
 
-  // Active voice users
+  // Active voice users from Firestore
   const [voiceUsers, setVoiceUsers] = useState([]);
   const [inVoiceChannel, setInVoiceChannel] = useState(false);
 
@@ -112,7 +111,7 @@ export default function ChatCallPage() {
     return () => unsubscribe && unsubscribe();
   }, [activeGroup]);
 
-  // Subscribe to active voice users
+  // Subscribe to active voice users using subscribeToActiveUsers
   useEffect(() => {
     const unsubscribe = subscribeToActiveUsers((activeUsers) => {
       setVoiceUsers(activeUsers);
@@ -135,7 +134,7 @@ export default function ChatCallPage() {
     }
   };
 
-  // Join voice channel
+  // Join voice channel (set presence)
   const handleJoinVoice = async () => {
     if (!user?.id) {
       console.warn("No user. Cannot join voice channel.");
@@ -149,7 +148,7 @@ export default function ChatCallPage() {
     }
   };
 
-  // Leave voice channel
+  // Leave voice channel (remove presence)
   const handleLeaveVoice = async () => {
     if (!user?.id) return;
     try {
@@ -183,27 +182,30 @@ export default function ChatCallPage() {
             Chat Groups
           </Typography>
           <Divider sx={{ my: 1 }} />
-          <List>
-            {groups.map((g, index) => (
-              <ListItemButton
-                key={index}
-                selected={activeGroup === g.label}
-                onClick={() => setActiveGroup(g.label)}
-              >
-                <ListItemIcon>{g.icon}</ListItemIcon>
-                <ListItemText primary={g.label} />
-              </ListItemButton>
-            ))}
-          </List>
+          {/* List of Groups */}
+          {groups.map((g, index) => (
+            <ListItemButton
+              key={index}
+              selected={activeGroup === g.label}
+              onClick={() => setActiveGroup(g.label)}
+            >
+              <ListItemIcon>{g.icon}</ListItemIcon>
+              <ListItemText primary={g.label} />
+            </ListItemButton>
+          ))}
         </Box>
       </Drawer>
 
       {/* Middle Column - Chat Window */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Top bar for active group */}
         <AppBar
           position="static"
-          sx={{ backgroundColor: "#ce93d8", boxShadow: 1, height: 64, justifyContent: "center" }}
+          sx={{
+            backgroundColor: "#ce93d8",
+            boxShadow: 1,
+            height: 64,
+            justifyContent: "center",
+          }}
         >
           <Toolbar>
             <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -211,25 +213,20 @@ export default function ChatCallPage() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <ChatContainer>
-          <MessageList>
+        <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
             {messages.map((m) => (
               <MessageBubble key={m.id} isUser={m.sender === (user?.name || "You")}>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {m.sender} • {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {m.sender} •{" "}
+                  {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </Typography>
                 <Typography variant="body1">{m.text}</Typography>
               </MessageBubble>
             ))}
-          </MessageList>
+          </Box>
           {/* Input box */}
-          <Box
-            sx={{
-              display: "flex",
-              p: 2,
-              borderTop: "1px solid #ddd",
-            }}
-          >
+          <Box sx={{ display: "flex", p: 2, borderTop: "1px solid #ddd" }}>
             <TextField
               fullWidth
               placeholder="Type a message..."
@@ -251,7 +248,7 @@ export default function ChatCallPage() {
               <SendIcon />
             </Button>
           </Box>
-        </ChatContainer>
+        </Box>
       </Box>
 
       {/* Right Drawer - Voice Channel */}
@@ -269,41 +266,47 @@ export default function ChatCallPage() {
         }}
       >
         <Box sx={{ height: 64 }} />
-        <Box sx={{ overflow: "auto", p: 2 }}>
+        <Box sx={{ overflowY: "auto", p: 2, height: "calc(100vh - 64px)" }}>
           <Typography variant="h6" textAlign="center">
             Voice Channel
           </Typography>
           <Divider sx={{ my: 1 }} />
-          {/* Active voice users */}
-          {voiceUsers.map((u) => (
-            <Box
-              key={u.id}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                mb: 2,
-                p: 1,
-                borderRadius: 1,
-                bgcolor: "rgba(255, 204, 128, 0.2)",
-              }}
-            >
-              <Badge
-                overlap="circular"
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                variant="dot"
+          {/* Display all active users */}
+          {voiceUsers.length === 0 ? (
+            <Typography variant="body2" textAlign="center">
+              No users online.
+            </Typography>
+          ) : (
+            voiceUsers.map((u) => (
+              <Box
+                key={u.id}
                 sx={{
-                  "& .MuiBadge-badge": {
-                    backgroundColor: "#66bb6a",
-                  },
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 2,
+                  p: 1,
+                  borderRadius: 1,
+                  bgcolor: "rgba(255, 204, 128, 0.2)",
                 }}
               >
-                <Avatar>{u.name.charAt(0)}</Avatar>
-              </Badge>
-              <Typography variant="body1" sx={{ ml: 1 }}>
-                {u.name}
-              </Typography>
-            </Box>
-          ))}
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  variant="dot"
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#66bb6a",
+                    },
+                  }}
+                >
+                  <Avatar>{u.name.charAt(0)}</Avatar>
+                </Badge>
+                <Typography variant="body1" sx={{ ml: 1 }}>
+                  {u.name}
+                </Typography>
+              </Box>
+            ))
+          )}
           <Divider sx={{ my: 1 }} />
           {/* Join / Leave Voice */}
           {!inVoiceChannel ? (
