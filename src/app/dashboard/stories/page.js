@@ -7,9 +7,11 @@ import {
   Grid,
   Paper,
   Button,
-  Link
+  Link,
+  IconButton
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+import HomeIcon from "@mui/icons-material/Home";
 
 const articles = [
   {
@@ -75,25 +77,47 @@ export default function SuccessStoriesPage() {
       }}
     >
       {/* Header Section */}
-      <Box sx={{ textAlign: "center", pt: 6, pb: 2 }}>
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: "bold", color: "#70342B", mb: 1 }}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          pt: 6,
+          pb: 2,
+          px: 2,
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", color: "#70342B", display: "flex", alignItems: "center" }}
+          >
+            Success Stories
+            <img
+              src="/star.png"
+              alt="Star"
+              style={{
+                width: "30px",
+                marginLeft: "8px",
+                verticalAlign: "middle",
+              }}
+            />
+          </Typography>
+          <Typography variant="subtitle1" sx={{ mt: 1, color: "black" }}>
+            Every journey has a story—be inspired, stay strong, and keep moving forward!
+          </Typography>
+        </Box>
+        <IconButton
+          sx={{
+            color: "#70342B",
+            border: "1px solid #70342B",
+            borderRadius: 2,
+            "&:hover": { backgroundColor: "#F8D24A" },
+          }}
+          onClick={() => router.push("/dashboard")}
         >
-          Success Stories
-          <img
-            src="/star.png"
-            alt="Star"
-            style={{
-              width: "30px",
-              marginLeft: "8px",
-              verticalAlign: "middle",
-            }}
-          />
-        </Typography>
-        <Typography variant="h6" sx={{ color: "black" }}>
-          Every journey has a story—be inspired, stay strong, and keep moving forward!
-        </Typography>
+          <HomeIcon />
+        </IconButton>
       </Box>
 
       {/* Grid Container for Articles */}

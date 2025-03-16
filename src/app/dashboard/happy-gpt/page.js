@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Typography, TextField, Button, Box, CircularProgress } from "@mui/material";
+import { Typography, TextField, Button, Box, CircularProgress,IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import HomeIcon from "@mui/icons-material/Home";
+import { useRouter } from "next/navigation";
 
 export default function HappyChatPage() {
   const [input, setInput] = useState("");
@@ -15,6 +17,7 @@ export default function HappyChatPage() {
     id: null,
   });
   const messagesEndRef = useRef(null);
+  const router = useRouter();
 
   // Auto-scroll to the bottom whenever messages or typing updates
   useEffect(() => {
@@ -119,6 +122,17 @@ export default function HappyChatPage() {
         <Typography variant="h4" sx={{ mb: 4 }}>
           Your virtual cheerleader is here — talk to Happy Bot 💛
         </Typography>
+         <IconButton
+                    sx={{
+                      color: "#70342B",
+                      border: "1px solid #70342B",
+                      borderRadius: 2,
+                      "&:hover": { backgroundColor: "#F8D24A" },
+                    }}
+                    onClick={() => router.push("/dashboard")} // or your home route
+                  >
+                    <HomeIcon />
+                  </IconButton>
       </Box>
 
       {/* Chat Window (transparent) */}
@@ -137,9 +151,15 @@ export default function HappyChatPage() {
             width: "60%", // 60% wide
             flex: 1,
             overflowY: "auto",
-            backgroundColor: "transparent", // Transparent so background shows
+            backgroundColor: "rgb(0,0,0,0.1)", // Transparent so background shows
             display: "flex",
             flexDirection: "column",
+            // Add padding and border radius
+            p: 2,
+            borderRadius: 5,
+            boxShadow: 3,
+            backdropFilter: "blur(10px)", // Optional: for a frosted glass effect
+            
           }}
         >
          
