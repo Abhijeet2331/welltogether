@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
@@ -17,18 +18,28 @@ import {
   Button,
   IconButton,
   Avatar,
-  Badge
+  Badge,
+  Menu,
+  MenuItem,
+  FormControl,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  LinearProgress
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
   Groups,
   LocalHospital,
   Celebration,
-  Psychology,
+  Poll as PollIcon,
+  Movie as MovieIcon,
+  ExpandMore as ExpandMoreIcon,
   Send as SendIcon,
   Mic as MicIcon,
   CallEnd as CallEndIcon
 } from "@mui/icons-material";
+import HomeIcon from "@mui/icons-material/Home";
 import {
   subscribeToChatMessages,
   sendChatMessage,
@@ -47,7 +58,10 @@ const ChatContainer = styled("div")(({ theme }) => ({
   flex: 1,
   display: "flex",
   flexDirection: "column",
-  backgroundColor: "#fafafa",
+  backgroundImage: "url('/chat_bg3.png')", // Replace with your image path or URL
+  backgroundSize: "cover",
+  backgroundPosition: "fill",
+  backgroundRepeat: "no-repeat",
 }));
 
 const MessageList = styled("div")(({ theme }) => ({
@@ -59,7 +73,6 @@ const MessageList = styled("div")(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
-// Filter out custom prop "isUser" so it isn't passed to DOM
 const MessageBubble = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "isUser"
 })(({ theme, isUser }) => ({
@@ -70,9 +83,60 @@ const MessageBubble = styled(Paper, {
   backgroundColor: isUser ? "#e0f7fa" : "#f3e5f5",
 }));
 
+// Movie polls data
+const moviePolls = [
+  {
+    id: "feel-good-comedy",
+    title: "Feel-Good Comedy Night",
+    description: "Which heartwarming comedy should we watch next?",
+    options: [
+      "The Secret Life of Walter Mitty",
+      "Little Miss Sunshine", 
+      "School of Rock",
+      "The Grand Budapest Hotel"
+    ],
+    votes: [12, 8, 15, 10]
+  },
+  {
+    id: "feel-good-drama",
+    title: "Inspirational Drama",
+    description: "Pick your favorite uplifting drama",
+    options: [
+      "The Pursuit of Happyness",
+      "Soul", 
+      "The Shawshank Redemption",
+      "Hidden Figures"
+    ],
+    votes: [18, 11, 22, 14]
+  },
+  {
+    id: "feel-good-adventure",
+    title: "Adventure Feel-Good",
+    description: "Which adventure will lift our spirits?",
+    options: [
+      "Up",
+      "The Princess Bride", 
+      "Paddington 2",
+      "Inside Out"
+    ],
+    votes: [9, 16, 13, 17]
+  },
+  {
+    id: "feel-good-classics",
+    title: "Classic Feel-Good Movies",
+    description: "Which timeless classic should we enjoy together?",
+    options: [
+      "It's a Wonderful Life",
+      "Forrest Gump", 
+      "Amélie",
+      "Singin' in the Rain"
+    ],
+    votes: [11, 25, 7, 14]
+  }
+];
+
 // ------------------ VoiceCall Component ------------------
 function VoiceCall({ user }) {
-  // If no valid user, show disabled button
   if (!user || !user.id) {
     return (
       <Button variant="contained" disabled sx={{ width: "100%" }}>
@@ -85,25 +149,20 @@ function VoiceCall({ user }) {
   const [peerConnection, setPeerConnection] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const audioRef = useRef(null);
-  const callDocRef = useRef(null);
 
-  // STUN configuration for ICE candidates
   const configuration = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
   const joinCall = async () => {
     try {
-      // Mark user as active in voice channel
       await setUserVoiceStatus(user.id, true);
       setInCall(true);
 
-      // Get local audio stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setLocalStream(stream);
       const pc = new RTCPeerConnection(configuration);
       setPeerConnection(pc);
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
-      // Create remote stream and attach it to audio element
       const remoteStream = new MediaStream();
       if (audioRef.current) {
         audioRef.current.srcObject = remoteStream;
@@ -112,9 +171,6 @@ function VoiceCall({ user }) {
         event.streams[0].getTracks().forEach((track) => remoteStream.addTrack(track));
       };
 
-      // --- Placeholder Signaling Logic ---
-      // Use a fixed call document "activeCall" in Firestore.
-      // In a full implementation, exchange SDP offers/answers and ICE candidates via Firestore.
       console.log("VoiceCall: RTCPeerConnection created. Signaling exchange is not fully implemented.");
     } catch (err) {
       console.error("Error joining voice call:", err);
@@ -166,15 +222,142 @@ function VoiceCall({ user }) {
 }
 // ---------------- End VoiceCall Component ----------------
 
+// ---------------- MoviePollComponent ----------------
+function MoviePoll({ poll, onVote, user }) {
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [hasVoted, setHasVoted] = useState(false);
+
+  const handleChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  const handleVote = () => {
+    if (selectedOption !== null) {
+      onVote(poll.id, parseInt(selectedOption));
+      setHasVoted(true);
+    }
+  };
+
+  const totalVotes = poll.votes.reduce((sum, count) => sum + count, 0);
+
+  return (
+    <Paper elevation={2} sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <MovieIcon sx={{ mr: 1, color: '#ab47bc' }} />
+        <Typography variant="h6">{poll.title}</Typography>
+      </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        {poll.description}
+      </Typography>
+
+      {!hasVoted ? (
+        <FormControl component="fieldset" sx={{ width: '100%' }}>
+          <RadioGroup value={selectedOption} onChange={handleChange}>
+            {poll.options.map((option, index) => (
+              <FormControlLabel
+                key={index}
+                value={index.toString()}
+                control={<Radio color="secondary" />}
+                label={option}
+              />
+            ))}
+          </RadioGroup>
+          <Button
+            variant="contained"
+            onClick={handleVote}
+            disabled={selectedOption === null || !user}
+            sx={{ mt: 1, bgcolor: '#ab47bc' }}
+          >
+            Vote
+          </Button>
+          {!user && (
+            <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+              Login required to vote
+            </Typography>
+          )}
+        </FormControl>
+      ) : (
+        <Box>
+          {poll.options.map((option, index) => (
+            <Box key={index} sx={{ mb: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="body2">{option}</Typography>
+                <Typography variant="body2" fontWeight="bold">
+                  {Math.round((poll.votes[index] / totalVotes) * 100)}%
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={(poll.votes[index] / totalVotes) * 100}
+                sx={{ 
+                  height: 8, 
+                  borderRadius: 1,
+                  bgcolor: '#e0e0e0',
+                  '& .MuiLinearProgress-bar': {
+                    bgcolor: '#ab47bc'
+                  }
+                }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {poll.votes[index]} votes
+              </Typography>
+            </Box>
+          ))}
+          <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
+            Thank you for voting! Total votes: {totalVotes}
+          </Typography>
+        </Box>
+      )}
+    </Paper>
+  );
+}
+
 export default function ChatCallPage() {
   const router = useRouter();
-  const [activeGroup, setActiveGroup] = useState("General Chat");
+  const [activeGroup, setActiveGroup] = useState("The Commons");
+  const [activeSubGroup, setActiveSubGroup] = useState(null);
+  const [thriveMenuAnchor, setThriveMenuAnchor] = useState(null);
+  const [localPolls, setLocalPolls] = useState(moviePolls);
+
+  const handleVote = (pollId, optionIndex) => {
+    setLocalPolls(polls => polls.map(poll => {
+      if(poll.id === pollId) {
+        const newVotes = [...poll.votes];
+        newVotes[optionIndex] = newVotes[optionIndex] + 1;
+        return { ...poll, votes: newVotes };
+      }
+      return poll;
+    }));
+  };
+
   const groups = [
-    { label: "General Chat", icon: <Groups /> },
-    { label: "Disease Based Chat", icon: <LocalHospital /> },
-    { label: "Support Groups", icon: <Celebration /> },
-    { label: "Talk to Psychologist", icon: <Psychology /> },
+    { label: "The Commons", icon: <Groups />, hasSubMenu: false },
+    { label: "Thrive Together", icon: <LocalHospital />, hasSubMenu: true },
+    { label: "Guided Support", icon: <Celebration />, hasSubMenu: false },
+    { label: "Watch Party Polls", icon: <PollIcon />, hasSubMenu: false },
   ];
+  
+  const diseaseGroups = [
+    "Bone Health & Osteoporosis",
+    "Lupus",
+    "Lung Cancer Survivors",
+    "Liver Disease",
+    "Prostate Cancer"
+  ];
+
+  const handleThriveMenuOpen = (event) => {
+    setThriveMenuAnchor(event.currentTarget);
+  };
+
+  const handleThriveMenuClose = () => {
+    setThriveMenuAnchor(null);
+  };
+
+  const handleThriveSubMenuSelect = (subGroup) => {
+    setActiveGroup("Thrive Together");
+    setActiveSubGroup(subGroup);
+    handleThriveMenuClose();
+  };
 
   // Chat messages and input
   const [messages, setMessages] = useState([]);
@@ -186,7 +369,7 @@ export default function ChatCallPage() {
   // Current user from localStorage
   const [user, setUser] = useState(null);
 
-  // Load user from localStorage on mount; if user exists but no id, create one.
+  // Load user from localStorage on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -194,7 +377,6 @@ export default function ChatCallPage() {
       if (parsed.id) {
         setUser(parsed);
       } else if (parsed.name) {
-        // Create a new user with full info
         getOrCreateUser(parsed.name).then((newUser) => {
           localStorage.setItem("user", JSON.stringify(newUser));
           setUser(newUser);
@@ -209,7 +391,12 @@ export default function ChatCallPage() {
 
   // Subscribe to chat messages for activeGroup using subscribeToChatMessages
   useEffect(() => {
-    const unsubscribe = subscribeToChatMessages(activeGroup, (msgs) => {
+    let chatGroup = activeGroup;
+    if (activeSubGroup && activeGroup === "Thrive Together") {
+      chatGroup = `${activeGroup}-${activeSubGroup}`;
+    }
+    
+    const unsubscribe = subscribeToChatMessages(chatGroup, (msgs) => {
       setMessages(
         msgs.map((m) => ({
           id: m.id,
@@ -220,7 +407,7 @@ export default function ChatCallPage() {
       );
     });
     return () => unsubscribe && unsubscribe();
-  }, [activeGroup]);
+  }, [activeGroup, activeSubGroup]);
 
   // Subscribe to active voice users using subscribeToActiveUsers
   useEffect(() => {
@@ -237,103 +424,217 @@ export default function ChatCallPage() {
       text: messageInput,
     };
     setMessageInput("");
+    
     try {
-      await sendChatMessage(activeGroup, newMsg);
+      let chatGroup = activeGroup;
+      if (activeSubGroup && activeGroup === "Thrive Together") {
+        chatGroup = `${activeGroup}-${activeSubGroup}`;
+      }
+      await sendChatMessage(chatGroup, newMsg);
     } catch (err) {
       console.error("Failed to send chat message:", err);
     }
   };
 
+  const getDisplayGroupName = () => {
+    if (activeGroup === "Thrive Together" && activeSubGroup) {
+      return `${activeGroup}: ${activeSubGroup}`;
+    }
+    return activeGroup;
+  };
+
+  const renderContent = () => {
+    if (activeGroup === "Watch Party Polls") {
+      return (
+        <Box sx={{ p: 2, overflowY: "auto" }}>
+          <Typography variant="h5" sx={{ mb: 3 }}>
+            Movie Night Polls
+          </Typography>
+          {localPolls.map((poll) => (
+            <MoviePoll key={poll.id} poll={poll} onVote={handleVote} user={user} />
+          ))}
+        </Box>
+      );
+    } else {
+      return (
+        <ChatContainer>
+          <MessageList>
+            {messages.map((msg) => (
+              <MessageBubble 
+                key={msg.id} 
+                isUser={msg.sender === user?.name || msg.sender === "You"}
+                elevation={1}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {msg.sender}
+                </Typography>
+                <Typography variant="body1">{msg.text}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "right" }}>
+                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Typography>
+              </MessageBubble>
+            ))}
+          </MessageList>
+          <Box 
+            sx={{ 
+              p: 2, 
+              display: "flex", 
+              backgroundColor: "#fff", 
+              borderTop: "1px solid #e0e0e0" 
+            }}
+          >
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Type a message..."
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              size="small"
+              sx={{ mr: 1 }}
+              disabled={!user}
+            />
+            <Button 
+              variant="contained" 
+              color="primary" 
+              endIcon={<SendIcon />} 
+              onClick={handleSendMessage}
+              disabled={!user}
+              sx={{ bgcolor: "#ab47bc" }}
+            >
+              Send
+            </Button>
+          </Box>
+        </ChatContainer>
+      );
+    }
+  };
+  
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
       <CssBaseline />
-
-      {/* Left Drawer - Chat Groups */}
+      {/* Updated Header: similar to Games page */}
+      <AppBar
+        position="fixed"
+        sx={{
+          width: `calc(100%  - ${voiceDrawerWidth}px)`,
+          ml: `${drawerWidth}px`,
+          backgroundColor: "#f5f5f5",
+          borderBottom: "1px solid #ccc",
+          boxShadow: "none"
+        }}
+      >
+        <Toolbar sx={{ justifyContent: "space-between", alignItems: "center" }}>
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: "bold",
+                color: "#70342B",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {getDisplayGroupName()}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ mt: 1, color: "black" }}>
+              Your Chat & Call Hub
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <IconButton
+              sx={{
+                color: "#70342B",
+                border: "1px solid #70342B",
+                borderRadius: 2,
+                "&:hover": { backgroundColor: "#F8D24A" },
+              }}
+              onClick={() => router.push("/dashboard")}
+            >
+              <HomeIcon />
+            </IconButton>
+            {user && (
+              <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ mr: 1 }}>
+                  {user.name}
+                </Typography>
+                <Avatar sx={{ bgcolor: "#7b1fa2" }}>
+                  {user.name && user.name.charAt(0).toUpperCase()}
+                </Avatar>
+              </Box>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+      
+      {/* Left Drawer - Group Navigation */}
       <Drawer
-        variant="permanent"
         sx={{
           width: drawerWidth,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
             width: drawerWidth,
             boxSizing: "border-box",
-            backgroundColor: "#f3e5f5",
           },
         }}
+        variant="permanent"
+        anchor="left"
       >
-        <Box sx={{ height: 64 }} />
-        <Box sx={{ overflow: "auto" }}>
-          <Typography variant="h6" sx={{ textAlign: "center", mt: 2 }}>
-            Chat Groups
-          </Typography>
-          <Divider sx={{ my: 1 }} />
-          {groups.map((g, index) => (
+        <Toolbar />
+        <Divider />
+        <List>
+          {groups.map((group) => (
             <ListItemButton
-              key={index}
-              selected={activeGroup === g.label}
-              onClick={() => setActiveGroup(g.label)}
+              key={group.label}
+              selected={activeGroup === group.label}
+              onClick={
+                group.hasSubMenu
+                  ? handleThriveMenuOpen
+                  : () => {
+                      setActiveGroup(group.label);
+                      setActiveSubGroup(null);
+                    }
+              }
             >
-              <ListItemIcon>{g.icon}</ListItemIcon>
-              <ListItemText primary={g.label} />
+              <ListItemIcon sx={{ color: "#9c27b0" }}>{group.icon}</ListItemIcon>
+              <ListItemText primary={group.label} />
+              {group.hasSubMenu && <ExpandMoreIcon />}
             </ListItemButton>
           ))}
-        </Box>
-      </Drawer>
-
-      {/* Middle Column - Chat Window */}
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <AppBar
-          position="static"
-          sx={{
-            backgroundColor: "#ce93d8",
-            boxShadow: 1,
-            height: 64,
-            justifyContent: "center",
-          }}
+        </List>
+        <Menu
+          anchorEl={thriveMenuAnchor}
+          open={Boolean(thriveMenuAnchor)}
+          onClose={handleThriveMenuClose}
         >
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              {activeGroup}
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <ChatContainer>
-          <MessageList>
-            {messages.map((m) => (
-              <MessageBubble key={m.id} isUser={m.sender === (user?.name || "You")}>
-                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {m.sender} • {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </Typography>
-                <Typography variant="body1">{m.text}</Typography>
-              </MessageBubble>
-            ))}
-          </MessageList>
-          <Box sx={{ display: "flex", p: 2, borderTop: "1px solid #ddd" }}>
-            <TextField
-              fullWidth
-              placeholder="Type a message..."
-              variant="outlined"
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-            <Button
-              variant="contained"
-              sx={{ ml: 1, backgroundColor: "#ab47bc" }}
-              onClick={handleSendMessage}
+          {diseaseGroups.map((group) => (
+            <MenuItem
+              key={group}
+              onClick={() => handleThriveSubMenuSelect(group)}
             >
-              <SendIcon />
-            </Button>
-          </Box>
-        </ChatContainer>
+              {group}
+            </MenuItem>
+          ))}
+        </Menu>
+      </Drawer>
+      
+      {/* Main Content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 0,
+          width: `calc(100% - ${drawerWidth}px - ${voiceDrawerWidth}px)`,
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Toolbar />
+        {renderContent()}
       </Box>
-
-      {/* Right Drawer - Voice Channel */}
+      
+      {/* Right Drawer - Voice Users */}
       <Drawer
         variant="permanent"
         anchor="right"
@@ -343,52 +644,36 @@ export default function ChatCallPage() {
           "& .MuiDrawer-paper": {
             width: voiceDrawerWidth,
             boxSizing: "border-box",
-            backgroundColor: "#f3e5f5",
           },
         }}
       >
-        <Box sx={{ height: 64 }} />
-        <Box sx={{ overflowY: "auto", p: 2, height: "calc(100vh - 64px)" }}>
-          <Typography variant="h6" textAlign="center">
-            Voice Channel
-          </Typography>
-          <Divider sx={{ my: 1 }} />
-          {voiceUsers.length === 0 ? (
-            <Typography variant="body2" textAlign="center">
-              No users online.
-            </Typography>
-          ) : (
-            voiceUsers.map((u) => (
-              <Box
-                key={u.id}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  mb: 2,
-                  p: 1,
-                  borderRadius: 1,
-                  bgcolor: "rgba(255, 204, 128, 0.2)",
-                }}
-              >
-                <Badge
-                  overlap="circular"
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  variant="dot"
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#66bb6a",
-                    },
-                  }}
-                >
-                  <Avatar>{u.name.charAt(0)}</Avatar>
-                </Badge>
-                <Typography variant="body1" sx={{ ml: 1 }}>
-                  {u.name}
-                </Typography>
-              </Box>
+        <Toolbar />
+        <Typography variant="h6" sx={{ p: 2 }}>
+          Voice Channel
+        </Typography>
+        <Divider />
+        <List>
+          {voiceUsers.length > 0 ? (
+            voiceUsers.map((voiceUser) => (
+              <ListItemButton key={voiceUser.id}>
+                <ListItemIcon>
+                  <Badge color="success" variant="dot">
+                    <Avatar sx={{ bgcolor: "#7b1fa2" }}>
+                      {voiceUser.name && voiceUser.name.charAt(0).toUpperCase()}
+                    </Avatar>
+                  </Badge>
+                </ListItemIcon>
+                <ListItemText primary={voiceUser.name || "Guest"} />
+              </ListItemButton>
             ))
+          ) : (
+            <Typography variant="body2" sx={{ p: 2, color: "text.secondary" }}>
+              No one is in the voice channel
+            </Typography>
           )}
-          <Divider sx={{ my: 1 }} />
+        </List>
+        <Divider />
+        <Box sx={{ p: 2 }}>
           <VoiceCall user={user} />
         </Box>
       </Drawer>

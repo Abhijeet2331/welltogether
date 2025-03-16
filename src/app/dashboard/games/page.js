@@ -120,7 +120,7 @@ export default function GamesPage() {
         </Box>
 
         {/* Game Cards */}
-        <Box sx={{ flex: "0 0 auto" }}>
+        <Box sx={{ flex: "0 0 auto" , overflowY: "auto"}}>
           <Grid container spacing={3}>
             {gameList.map((game, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
@@ -130,7 +130,7 @@ export default function GamesPage() {
                     textAlign: "center",
                     borderRadius: 2,
                     boxShadow: 3,
-                    height: 280,
+                    height: 380,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
@@ -140,7 +140,7 @@ export default function GamesPage() {
                   <Box
                     sx={{
                       width: "100%",
-                      height: "200px",
+                      height: "300px",
                       position: "relative",
                       overflow: "hidden",
                       borderRadius: "10px",
