@@ -2,7 +2,7 @@
 import { Container, Typography, Button, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { getOrCreateUser } from "../../firebaseService.js"; // Adjust the path as needed
+import { getOrCreateUser } from "../firebaseService.js"; // Adjust the path as needed
 
 export default function Home() {
   const router = useRouter();

@@ -8,7 +8,7 @@ import {
   addDoc,
   doc
 } from "firebase/firestore";
-import { db } from "./firebase.js"; // Adjust if your firebase.js is in another folder
+import { db } from "../firebase.js"; // Adjust if your firebase.js is in another folder
 
 export async function getOrCreateUser(name) {
   const q = query(collection(db, "users"), where("name", "==", name));

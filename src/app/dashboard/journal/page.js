@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Container, TextField, Button, Typography, Paper } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import { getOrCreateUser, saveJournalEntry } from "../../../firebaseService.js";
+import { getOrCreateUser, saveJournalEntry } from "@/firebaseService";
+
 
 
 
