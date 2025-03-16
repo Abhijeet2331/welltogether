@@ -1,62 +1,49 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { Container, Typography, Grid, Button, Paper } from "@mui/material";
+import ChatIcon from "@mui/icons-material/Chat";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CreateIcon from "@mui/icons-material/Create";
+import MovieIcon from "@mui/icons-material/Movie";
 import { useRouter } from "next/navigation";
-import { Container, Typography, Button, Grid } from "@mui/material"; // ✅ Use standard Grid
 
 export default function Dashboard() {
-  const [characterName, setCharacterName] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    const storedName = typeof window !== "undefined" ? localStorage.getItem("characterName") : "";
-    if (storedName) {
-      setCharacterName(storedName);
-    } else {
-      router.push("/"); // Redirect to home if no name is found
-    }
-  }, [router]);
+  const features = [
+    { name: "Call & Chat", icon: <ChatIcon />, route: "/dashboard/chat" },
+    { name: "Multiplayer Games", icon: <SportsEsportsIcon />, route: "/dashboard/games" },
+    { name: "Happy ChatGPT", icon: <AutoAwesomeIcon />, route: "/dashboard/happy-gpt" },
+    { name: "Daily Journal", icon: <CreateIcon />, route: "/dashboard/journal" },
+    { name: "Watch Party", icon: <MovieIcon />, route: "/dashboard/watch-party" },
+  ];
 
   return (
-    <Container maxWidth="sm" style={{ textAlign: "center", marginTop: "50px" }}>
-      <Typography variant="h4" gutterBottom>
-        Welcome, {characterName}
+    <Container maxWidth="md" sx={{ mt: 5 }}>
+      <Typography variant="h4" fontWeight="bold" textAlign="center">
+        WellTogether Dashboard
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
-        Choose an option below:
-      </Typography>
-
-      <Grid container spacing={2} justifyContent="center">
-        <Grid item xs={12}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={() => router.push("/dashboard/chat")}
-          >
-            🗨️ Chat / Call
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Button variant="contained" color="secondary" fullWidth>
-            📅 Appointments
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Button variant="contained" color="success" fullWidth>
-            🏥 Hospital Services
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Button variant="contained" color="warning" fullWidth>
-            📑 Medical Records
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Button variant="contained" color="info" fullWidth>
-            ⚙️ Settings
-          </Button>
-        </Grid>
+      <Grid container spacing={3} sx={{ mt: 4 }}>
+        {features.map((feature, index) => (
+          <Grid item xs={12} sm={6} key={index}>
+            <Paper
+              sx={{
+                p: 3,
+                textAlign: "center",
+                borderRadius: 2,
+                cursor: "pointer",
+                boxShadow: 3,
+                "&:hover": { bgcolor: "primary.light" },
+              }}
+              onClick={() => router.push(feature.route)}
+            >
+              {feature.icon}
+              <Typography variant="h6" sx={{ mt: 1 }}>
+                {feature.name}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
     </Container>
   );

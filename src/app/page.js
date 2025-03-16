@@ -1,47 +1,50 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { Container, Typography, Button, TextField, Box } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { TextField, Button, Container, Typography } from "@mui/material";
+import ChatIcon from "@mui/icons-material/Chat";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CreateIcon from "@mui/icons-material/Create";
+import MovieIcon from "@mui/icons-material/Movie";
+import { useState } from "react";
 
 export default function Home() {
-  const [name, setName] = useState("");
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Ensure the component is mounted before accessing localStorage
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const handleSubmit = () => {
-    if (name.trim() === "") return;
-    
-    if (typeof window !== "undefined") {
-      localStorage.setItem("characterName", name);
-    }
-
-    router.push("/dashboard"); // Navigate to the dashboard
-  };
-
-  if (!isMounted) {
-    return null; // Prevent rendering on the server
-  }
+  const [name, setName] = useState("");
 
   return (
-    <Container maxWidth="sm" style={{ textAlign: "center", marginTop: "100px" }}>
-      <Typography variant="h4" gutterBottom>
-        Enter Your Character Name
+    <Container
+      maxWidth="sm"
+      sx={{
+        textAlign: "center",
+        mt: 10,
+        background: "white",
+        padding: 4,
+        borderRadius: 3,
+        boxShadow: 3,
+      }}
+    >
+      <Typography variant="h4" fontWeight="bold" color="primary">
+        Welcome to WellTogether
+      </Typography>
+      <Typography variant="subtitle1" color="textSecondary" sx={{ mt: 1 }}>
+        Enter your name to continue
       </Typography>
       <TextField
-        label="Character Name"
-        variant="outlined"
         fullWidth
+        variant="outlined"
+        label="Your Name"
+        sx={{ mt: 3 }}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        style={{ marginBottom: "20px" }}
       />
-      <Button variant="contained" color="primary" onClick={handleSubmit}>
+      <Button
+        fullWidth
+        variant="contained"
+        color="primary"
+        sx={{ mt: 3 }}
+        onClick={() => router.push("/dashboard")}
+      >
         Continue
       </Button>
     </Container>
