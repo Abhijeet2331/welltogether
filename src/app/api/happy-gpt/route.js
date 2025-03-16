@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 // Initialize OpenAI client with OpenRouter configuration
 const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY, // Use OPENROUTER_API_KEY if available
+  apiKey: process.env.OPENROUTER_API_KEY , // Use OPENROUTER_API_KEY if available
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": process.env.NEXT_PUBLIC_HOST || "http://localhost:3000", // Required by OpenRouter
