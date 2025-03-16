@@ -78,12 +78,12 @@ export default function SecondPage() {
         justifyContent: "center",
       }}
     >
-      {/* Hamburger menu at top-left */}
+      {/* Hamburger menu at top-left
       <Box sx={{ position: "absolute", top: 20, left: 20 }}>
         <IconButton sx={{ color: "black" }}>
           <MenuIcon />
         </IconButton>
-      </Box>
+      </Box> */}
 
       {/* Greeting text, larger & centered */}
       <Typography
