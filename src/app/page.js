@@ -15,13 +15,13 @@ export default function Home() {
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
-      if (i <= fullText.length) { // Fix "r" not showing by including <=
-        setTypedText(fullText.slice(0, i)); // Use slice instead of appending
+      if (i <= fullText.length) {
+        setTypedText(fullText.slice(0, i));
         i++;
       } else {
         clearInterval(interval);
       }
-    }, 90); // Faster typing speed
+    }, 90); // Adjust typing speed
 
     return () => clearInterval(interval);
   }, []);
@@ -47,28 +47,29 @@ export default function Home() {
         height: "100%",
         top: 0,
         left: 0,
-        backgroundImage: "url('/your-background.png')", // Full-screen background
+        backgroundImage: "url('/your-background.png')", // Full-screen background image
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "flex-start", // Move content upwards
         alignItems: "center",
         textAlign: "center",
-        padding: "20px",
+        paddingTop: "8vh", // Push content up slightly
+        paddingBottom: "5vh", // Add space for the GIF
       }}
     >
       {/* Typing Effect Text */}
       <Typography
-        variant="h2" // Increased size
+        variant="h2"
         fontWeight="bold"
         sx={{
           mb: 3,
           color: "white",
           whiteSpace: "nowrap",
           overflow: "hidden",
-          borderRight: "4px solid white", // Blinking cursor
+          borderRight: "4px solid white", // Blinking cursor effect
           paddingRight: "10px",
           fontFamily: "'Nunito', sans-serif",
         }}
@@ -83,9 +84,9 @@ export default function Home() {
           alignItems: "center",
           background: "#FFD6E0", // Soft pink background
           padding: "14px",
-          borderRadius: "40px", // More rounded
+          borderRadius: "40px",
           width: "100%",
-          maxWidth: "600px", // Increased size
+          maxWidth: "600px",
           boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
         }}
       >
@@ -98,7 +99,7 @@ export default function Home() {
             style: {
               color: "#5A1A1A", // Dark reddish-brown text
               fontWeight: "bold",
-              fontSize: "18px", // Increased font size
+              fontSize: "18px",
               padding: "5px 15px",
             },
           }}
@@ -126,6 +127,28 @@ export default function Home() {
         >
           ➝
         </Button>
+      </div>
+
+      {/* GIF Section */}
+      <div
+        style={{
+          marginTop: "5vh",
+          width: "80%",
+          maxWidth: "900px",
+          borderRadius: "20px",
+          overflow: "hidden",
+          boxShadow: "0px 6px 12px rgba(0,0,0,0.3)",
+        }}
+      >
+        <img
+          src="/your-video.gif"
+          alt="Your GIF"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
       </div>
     </div>
   );
