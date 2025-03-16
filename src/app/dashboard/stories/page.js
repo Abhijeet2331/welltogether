@@ -1,101 +1,77 @@
 "use client";
+
 import React from "react";
-import {
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  CardActionArea,
-  Box
-} from "@mui/material";
+import { Box, Typography, Paper, Link } from "@mui/material";
 
-export default function SuccessStoriesPage() {
-  // Example stories (replace with dynamic data if needed)
-  const stories = [
-    {
-      title: "Meet Kristine Beard, an Inspire Multiple Myeloma Ambassador",
-      date: "March 2, 2024",
-      excerpt:
-        "Multiple myeloma is a cancer of the plasma cells in bone marrow. Read Kristine Beard’s journey of how she’s thriving with her condition.",
-      category: "Chronic disease",
-      image: "/images/kristine.jpg"
-    },
-    {
-      title: "Navigating a New Land: How One Patient Became Empowered Through Her Chronic Disease",
-      date: "March 10, 2024",
-      excerpt:
-        "There’s no good way to be diagnosed with a chronic disease. After Katie Ray’s life was turned upside down, she found solace by a neurologist and self‑therapy methods. Learn how she took charge and empowered herself.",
-      category: "Chronic disease",
-      image: "/images/katie.jpg"
-    }
-  ];
+const articles = [
+  {
+    timestamp: "3/16/2025 12:47 AM",
+    content: "Shared via the Google app",
+    link: "https://search.app/HnRTLZeeeKfgwEGP9",
+  },
+  {
+    timestamp: "3/16/2025 12:47 AM",
+    content: 'Richina Lukes-Milledge joined "In Focus." Shared via the Google app',
+    link: "https://search.app/XpKp2pgWbrRpJNWZ6",
+  },
+  {
+    timestamp: "3/16/2025 12:48 AM",
+    content: "Shared via the Google app",
+    link: "https://search.app/ijEPhx7Evja79Ets6",
+  },
+  {
+    timestamp: "3/16/2025 12:48 AM",
+    content:
+      "Fox News war reporter Benjamin Hall opens up about his difficult first year since he was bombed in Ukraine — and how he found the motivation to get home. Source: People.com Shared via the Google app",
+    link: "https://search.app/RL1AcW2CyPwo86Ru9",
+  },
+  {
+    timestamp: "3/16/2025 12:49 AM",
+    content:
+      "Learn how one young mother used her rare chronic lung disease diagnosis to create a community on social media. Shared via the Google app",
+    link: "https://search.app/z6h3MzLvxNejAqyC8",
+  },
+  {
+    timestamp: "3/16/2025 12:49 AM",
+    content:
+      "Today the Charlotte Lozier Institute releases its seventh Stem Cell Research Facts video which returns to the life of lupus survivor Jackie Stollfus and how her… Source: Lozier Institute Shared via the Google app",
+    link: "https://search.app/NXdn7N6enisWVqJ98",
+  },
+];
 
+export default function ArticlesPage() {
   return (
-    <Container maxWidth="md" sx={{ mt: 5, mb: 5 }}>
-      <Typography variant="h4" fontWeight="bold" textAlign="center" gutterBottom>
-        Success Stories
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "100vh",
+        backgroundColor: "#f9f9f9",
+        p: 4,
+        overflowY: "auto", // Enables vertical scrolling when content overflows
+      }}
+    >
+      <Typography variant="h4" sx={{ mb: 4, textAlign: "center" }}>
+        Articles
       </Typography>
-      <Typography variant="subtitle1" textAlign="center" sx={{ mb: 5 }}>
-        Every journey has a story — be inspired, stay strong, and keep moving forward!
-      </Typography>
-
-      <Grid container spacing={4}>
-        {stories.map((story, index) => (
-          <Grid item xs={12} sm={6} key={index}>
-            <Card
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                height: "100%"
-              }}
-              elevation={3}
+      {articles.map((article, index) => (
+        <Paper key={index} sx={{ p: 2, mb: 2 }}>
+          <Typography variant="caption" color="textSecondary">
+            [{article.timestamp}]
+          </Typography>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            {article.content}{" "}
+            <Link
+              href={article.link}
+              target="_blank"
+              rel="noopener"
+              underline="hover"
+              sx={{ fontWeight: "bold" }}
             >
-              <CardActionArea>
-                {/* If you have a valid image, update the src accordingly */}
-                {story.image && (
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={story.image}
-                    alt={story.title}
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
-                )}
-                <CardContent>
-                  <Typography variant="h6" fontWeight="bold" gutterBottom>
-                    {story.title}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    display="block"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    {story.date}
-                  </Typography>
-                  <Typography variant="body2" paragraph>
-                    {story.excerpt}
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "inline-block",
-                      backgroundColor: "secondary.light",
-                      color: "white",
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 2
-                    }}
-                  >
-                    <Typography variant="caption">{story.category}</Typography>
-                  </Box>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
+              {article.link}
+            </Link>
+          </Typography>
+        </Paper>
+      ))}
+    </Box>
   );
 }

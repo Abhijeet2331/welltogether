@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, Typography, TextField, Button } from "@mui/material";
+import { Typography, TextField, Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -8,8 +8,8 @@ export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [typedText, setTypedText] = useState(""); // Typing effect state
-  const fullText = "Welcome to WellTogether!"; // Full text
+  const [typedText, setTypedText] = useState("");
+  const fullText = "Welcome to WellTogether!";
 
   // Typing effect logic
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function Home() {
       } else {
         clearInterval(interval);
       }
-    }, 90); // Adjust typing speed
+    }, 90);
 
     return () => clearInterval(interval);
   }, []);
@@ -42,113 +42,124 @@ export default function Home() {
   return (
     <div
       style={{
-        position: "absolute",
+        position: "relative",
         width: "100%",
-        height: "100%",
-        top: 0,
-        left: 0,
-        backgroundImage: "url('/your-background.png')", // Full-screen background image
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start", // Move content upwards
-        alignItems: "center",
-        textAlign: "center",
-        paddingTop: "8vh", // Push content up slightly
-        paddingBottom: "5vh", // Add space for the GIF
+        height: "100vh",
+        overflow: "hidden",
       }}
     >
-      {/* Typing Effect Text */}
-      <Typography
-        variant="h2"
-        fontWeight="bold"
-        sx={{
-          mb: 3,
-          color: "white",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          borderRight: "4px solid white", // Blinking cursor effect
-          paddingRight: "10px",
-          fontFamily: "'Nunito', sans-serif",
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
         }}
       >
-        {typedText}
-      </Typography>
+        <source src="/your-video.mp4" type="video/mp4" />
+      </video>
 
-      {/* Input Field */}
+      {/* Overlay to improve text readability if needed */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          background: "#FFD6E0", // Soft pink background
-          padding: "14px",
-          borderRadius: "40px",
+          position: "absolute",
+          top: 0,
+          left: 0,
           width: "100%",
-          maxWidth: "600px",
-          boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.3)", // Adjust opacity as needed
+          zIndex: 1,
+        }}
+      />
+
+      {/* Content */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          padding: "12vh 5vw 0",
         }}
       >
-        <TextField
-          fullWidth
-          variant="standard"
-          placeholder="Enter a character name to start your journey:"
-          InputProps={{
-            disableUnderline: true,
-            style: {
-              color: "#5A1A1A", // Dark reddish-brown text
-              fontWeight: "bold",
-              fontSize: "18px",
-              padding: "5px 15px",
-            },
-          }}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          sx={{ flexGrow: 1, background: "transparent" }}
-        />
-
-        {/* Arrow Button */}
-        <Button
-          onClick={handleContinue}
-          disabled={loading}
+        {/* Typing Effect Text */}
+        <Typography
+          variant="h2"
+          fontWeight="bold"
           sx={{
-            minWidth: "55px",
-            height: "55px",
-            borderRadius: "50%",
-            backgroundColor: "#000000", // Black button
+            mb: 5,
             color: "white",
-            ml: 2,
-            fontSize: "20px",
-            "&:hover": {
-              backgroundColor: "#F8D24A", // Yellow hover effect
-            },
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            borderRight: "4px solid white",
+            paddingRight: "10px",
+            fontFamily: "'Nunito', sans-serif",
+            textShadow: "2px 2px 4px rgba(0,0,0,0.5)", // Text shadow for better readability
           }}
         >
-          ➝
-        </Button>
-      </div>
+          {typedText}
+        </Typography>
 
-      {/* GIF Section */}
-      <div
-        style={{
-          marginTop: "5vh",
-          width: "80%",
-          maxWidth: "900px",
-          borderRadius: "20px",
-          overflow: "hidden",
-          boxShadow: "0px 6px 12px rgba(0,0,0,0.3)",
-        }}
-      >
-        <img
-          src="/your-video.gif"
-          alt="Your GIF"
+        {/* Input Field */}
+        <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            background: "rgba(255, 214, 224, 0.85)",
+            padding: "12px",
+            borderRadius: "40px",
             width: "100%",
-            height: "100%",
-            objectFit: "cover",
+            maxWidth: "500px",
+            boxShadow: "0px 4px 15px rgba(0,0,0,0.2)",
           }}
-        />
+        >
+          <TextField
+            fullWidth
+            variant="standard"
+            placeholder="Enter a character name to start"
+            InputProps={{
+              disableUnderline: true,
+              style: {
+                color: "#5A1A1A",
+                fontWeight: "bold",
+                fontSize: "18px",
+                padding: "5px 15px",
+              },
+            }}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            sx={{ flexGrow: 1, background: "transparent" }}
+          />
+
+          <Button
+            onClick={handleContinue}
+            disabled={loading}
+            sx={{
+              minWidth: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              backgroundColor: "#000000",
+              color: "white",
+              ml: 2,
+              fontSize: "18px",
+              "&:hover": {
+                backgroundColor: "#F8D24A",
+              },
+            }}
+          >
+            ➝
+          </Button>
+        </div>
       </div>
     </div>
   );
