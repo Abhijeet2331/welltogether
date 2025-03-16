@@ -16,6 +16,7 @@ export default function Dashboard() {
     { name: "Happy ChatGPT", icon: <AutoAwesomeIcon />, route: "/dashboard/happy-gpt" },
     { name: "Daily Journal", icon: <CreateIcon />, route: "/dashboard/journal" },
     { name: "Watch Party", icon: <MovieIcon />, route: "/dashboard/watch-party" },
+    { name: "Sucsess Stories", icon: <MovieIcon />, route: "/dashboard/stories" },
   ];
 
   return (
