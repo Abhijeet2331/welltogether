@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   AppBar,
@@ -15,39 +15,48 @@ import {
   Badge
 } from "@mui/material";
 import { Send as SendIcon, Mic, MicOff, Headset, CallEnd } from "@mui/icons-material";
+import { sendChatMessage, subscribeToChatMessages } from "@/firebaseService";
 
 export default function ChatCallPage() {
-  // State for selected chat group and chat messages
-  const [selectedGroup, setSelectedGroup] = useState("General Chat");
-  const [messageInput, setMessageInput] = useState("");
-  const [messages, setMessages] = useState([]); // In production, load messages from your DB
-  
-  // Simulated list of voice channel users
-  const [voiceUsers, setVoiceUsers] = useState([
-    { id: 1, name: "Alice", active: true, isSpeaking: true },
-    { id: 2, name: "Bob", active: true, isSpeaking: false }
-  ]);
-
-  // List of chat groups
+  // Chat groups state
   const groups = [
     "General Chat",
     "Disease Based Chat",
     "Support Groups",
     "Talk to Psychologist"
   ];
+  const [selectedGroup, setSelectedGroup] = useState("General Chat");
 
-  // Simulate sending a message
-  const handleSendMessage = () => {
+  // Chat messages state
+  const [messages, setMessages] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
+
+  // Voice call users (simulate for now)
+  const [voiceUsers, setVoiceUsers] = useState([
+    { id: 1, name: "Alice", active: true, isSpeaking: true },
+    { id: 2, name: "Bob", active: true, isSpeaking: false }
+  ]);
+
+  // Subscribe to messages when the group changes.
+  useEffect(() => {
+    const unsubscribe = subscribeToChatMessages(selectedGroup, setMessages);
+    return () => unsubscribe();
+  }, [selectedGroup]);
+
+  const handleSendMessage = async () => {
     if (!messageInput.trim()) return;
-    const newMessage = {
-      id: messages.length + 1,
-      text: messageInput,
-      sender: "You",
-      timestamp: new Date()
+    const messageData = {
+      sender: "You", // In a real app, use the logged-in user's name/ID
+      text: messageInput
     };
-    // In production, save the message to your database here.
-    setMessages([...messages, newMessage]);
-    setMessageInput("");
+
+    try {
+      // Send the message to the selected group
+      await sendChatMessage(selectedGroup, messageData);
+      setMessageInput("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   return (
@@ -60,10 +69,7 @@ export default function ChatCallPage() {
           <ListItemButton
             key={group}
             selected={selectedGroup === group}
-            onClick={() => {
-              setSelectedGroup(group);
-              setMessages([]); // Reset messages or load group-specific messages from DB
-            }}
+            onClick={() => setSelectedGroup(group)}
           >
             <ListItemText primary={group} />
           </ListItemButton>
@@ -81,7 +87,7 @@ export default function ChatCallPage() {
           {messages.map((msg) => (
             <Paper key={msg.id} sx={{ p: 1, mb: 1 }}>
               <Typography variant="caption" color="textSecondary">
-                {msg.sender} • {msg.timestamp.toLocaleTimeString()}
+                {msg.sender} • {new Date(msg.timestamp.seconds * 1000).toLocaleTimeString()}
               </Typography>
               <Typography variant="body1">{msg.text}</Typography>
             </Paper>
