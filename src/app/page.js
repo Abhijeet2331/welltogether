@@ -1,16 +1,29 @@
 "use client";
-import { Container, Typography, Button, TextField, Box } from "@mui/material";
+import { Container, Typography, Button, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
-import ChatIcon from "@mui/icons-material/Chat";
-import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import CreateIcon from "@mui/icons-material/Create";
-import MovieIcon from "@mui/icons-material/Movie";
 import { useState } from "react";
+import { getOrCreateUser } from "../../firebaseService.js"; // Adjust the path as needed
 
 export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleContinue = async () => {
+    if (!name.trim()) return;
+    setLoading(true);
+    try {
+      // Get existing user data or create a new user based on the provided name.
+      const user = await getOrCreateUser(name);
+      // Save user data locally so you can use it in subsequent pages.
+      localStorage.setItem("user", JSON.stringify(user));
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Failed to get or create user:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Container
@@ -43,9 +56,10 @@ export default function Home() {
         variant="contained"
         color="primary"
         sx={{ mt: 3 }}
-        onClick={() => router.push("/dashboard")}
+        onClick={handleContinue}
+        disabled={loading}
       >
-        Continue
+        {loading ? "Loading..." : "Continue"}
       </Button>
     </Container>
   );
