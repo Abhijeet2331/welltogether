@@ -3,17 +3,20 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#4B9CD3", // Light blue (HelpGuide.org theme)
+      main: "#C4A2F6", // Light purple (background)
     },
     secondary: {
-      main: "#FF6F61", // Warm coral red
+      main: "#FFD6E0", // Soft pink (input field)
     },
     background: {
-      default: "#F7F9FC", // Light grayish blue
+      default: "#C4A2F6", // Light purple background
     },
     text: {
-      primary: "#333", // Dark gray for contrast
-      secondary: "#666",
+      primary: "#5A1A1A", // Dark reddish-brown text
+      secondary: "#333",  // Secondary gray text
+    },
+    action: {
+      hover: "#F8D24A", // Accent yellow hover color
     },
   },
   typography: {
